@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+							http://www.springframework.org/schema/context
+							http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+
+	<!--
+		Our test service bean
+	-->
+	<bean id="testService" class="com.blog.samples.quartz.TestService"/>
+
+	<!--
+		 Job Detail bean configuration specifies the target object (our service object defined above)
+		 and the method we want to invoke on that object (testServiceMethod). The concurrent property
+		 specifies whether or not multiple instances of this job can be invoked concurrently
+	-->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="testService" />
+        <property name="targetMethod" value="testServiceMethod" />
+        <property name="concurrent" value="false" />
+    </bean>
+
+	<!--
+		The cron trigger bean allows us to specify the job that we want to invoke (jobDetail above)
+		and a cron expression that defines when the job should be invoked. My configuration below
+		will be invoked every 10 seconds
+	-->
+    <bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="jobDetail" />
+        <property name="cronExpression" value="0,10,20,30,40,50 * * * * ?" />
+    </bean>
+
+	<!--
+		The SchedulerFactoryBean takes a list of cron triggers - our example has just one
+		cron trigger but larger enterprise applications will typically have a number of different
+		cron trigger for different jobs. The quartz properties property allows you to specify
+		some specific quartz properties. In our simple example we tell Quartz not to check for updates
+	-->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="cronTrigger" />
+            </list>
+        </property>
+        <property name="quartzProperties">
+			<props>
+            	<prop key="org.quartz.scheduler.skipUpdateCheck">true</prop>
+        	</props>
+		</property>
+    </bean>
+
+</beans>
